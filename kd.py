@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import re
 import sys
 from wox import Wox, WoxAPI
 
@@ -145,9 +146,11 @@ class Main(Wox):
         def gen_rpc(method, *p):
             return {'method': method, 'parameters': list(p), 'dontHideAfterAction': True}
 
-        params = param.split()
+        type_ = re.findall(r'\D+', param)  # 快递公司
+        id_ = re.findall(r'\d+', param)  # 运单号
+
         # 支持的快递公司名称提示
-        if len(params) < 1:
+        if len(type_) < 1:
             result = [
                 {
                     'Title': v,
@@ -155,28 +158,29 @@ class Main(Wox):
                 }
                 for (_, v) in services.iteritems()
             ]
-        # 可根据缩写或汉字查找快递公司
-        elif len(params) == 1:
-            key = params[0]
-            result = [{'Title': u'请输入您的运单号'}]
-            result += [
-                {
-                    'Title': v,
-                    'JsonRPCAction': gen_rpc('_pick_service', v)
-                }
-                for (k, v) in services.iteritems() if k.find(key) != -1 or (v.find(key) != -1 and v != key)
-            ]
-        else:
-            result = [{'Title': u'尚未支持该快递公司'}]
-            for (k, v) in services.iteritems():
-                if k == params[0] or v == params[0]:
-                    try:
-                        result = self._get_status(k, params[1])
-                    except QueryException:
-                        result = [{'Title': u'未知查询错误, 请检查运单号是否填写正确'}]
-                    except:
-                        result = [{'Title': u'未知错误'}]
-                    break
+        elif len(type_) == 1:
+            key = type_[0].strip()
+            # 可根据缩写或汉字查找快递公司
+            if len(id_) == 0:
+                result = [{'Title': u'请输入您的运单号'}]
+                result += [
+                    {
+                        'Title': v,
+                       'JsonRPCAction': gen_rpc('_pick_service', v)
+                    }
+                    for (k, v) in services.iteritems() if k.find(key) != -1 or (v.find(key) != -1 and v != key)
+                ]
+            else:
+                result = [{'Title': u'尚未支持该快递公司'}]
+                for (k, v) in services.iteritems():
+                    if k == key or v == key:
+                        try:
+                            result = self._get_status(k, id_[0].strip())
+                        except QueryException:
+                            result = [{'Title': u'未知查询错误, 请检查运单号是否填写正确'}]
+                        except:
+                            result = [{'Title': u'未知错误'}]
+                        break
         return result
 
     def _pick_service(self, service):
