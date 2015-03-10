@@ -1,0 +1,12 @@
+{
+  "ID":"550BAB25F3233799AA3439884D53E9EA",
+  "ActionKeyword":"kd",
+  "Name":"KD",
+  "Description":"通过运单号追踪快递派送情况",
+  "Author":"wenLiangcan",
+  "Version":"0.0.1",
+  "Language":"python",
+  "Website":"https://github.com/wenLiangcan/KD",
+  "IcoPath": "",
+  "ExecuteFileName":"kd.py"
+}
