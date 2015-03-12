@@ -133,10 +133,10 @@ def pxto(type_, postid):
     rsp = requests.get(API, params=payload)
     rsp.encoding = 'utf-8'
     data = rsp.json()
-    if data.get('status') == u'200':
-        return data
-    else:
-        raise QueryException()
+    status = data.get('status')
+    if status != u'200':
+        raise QueryException(status)
+    return data
 
 
 class Main(Wox):
@@ -166,7 +166,7 @@ class Main(Wox):
                 result += [
                     {
                         'Title': v,
-                       'JsonRPCAction': gen_rpc('_pick_service', v)
+                        'JsonRPCAction': gen_rpc('_pick_service', v)
                     }
                     for (k, v) in services.iteritems() if k.find(key) != -1 or (v.find(key) != -1 and v != key)
                 ]
@@ -176,8 +176,8 @@ class Main(Wox):
                     if k == key or v == key:
                         try:
                             result = self._get_status(k, id_[0].strip())
-                        except QueryException:
-                            result = [{'Title': u'未知查询错误, 请检查运单号是否填写正确'}]
+                        except QueryException as e:
+                            result = [{'Title': u'未知查询错误 %s, 请检查运单号是否填写正确' % e}]
                         except:
                             result = [{'Title': u'未知错误'}]
                         break
